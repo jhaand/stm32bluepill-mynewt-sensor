@@ -109,8 +109,6 @@ set +e              #  TODO: Remove this when newt install is fixed
 newt install -v -f  #  TODO: "git checkout" fails due to uncommitted files
 set -e              #  TODO: Remove this when newt install is fixed
 
-echo "***** Reparing mynewt..."
-
 #  If apache-mynewt-core is missing, then the installation failed.
 if [ ! -d repos/apache-mynewt-core ]; then
     echo "***** newt install failed"
