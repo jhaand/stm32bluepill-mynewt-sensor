@@ -49,8 +49,8 @@ if [ ! -d $HOME/opt/xPacks/@xpack-dev-tools/arm-none-eabi-gcc ]; then
     xpm install @xpack-dev-tools/arm-none-eabi-gcc
     gccpath=`ls -d $HOME/opt/xPacks/@xpack-dev-tools/arm-none-eabi-gcc/*/.content/bin`
     if [[ ! "$PATH" = *"arm-none-eabi-gcc"* ]] ; then 
-        echo export PATH=$gccpath:\$PATH >> ~/.profile
-        export PATH=$PATH:$gccpath
+        echo export PATH=\$PATH:$gccpath >> ~/.profile
+        export PATH=$gccpath:$PATH
     fi
 fi
 arm-none-eabi-gcc --version  #  Should show "gcc version 8.2.1 20181213" or later.
@@ -64,7 +64,7 @@ if [ ! -e $golangpath/go ]; then
     if [[ ! "$PATH" = *"go-1"* ]] ; then 
         echo export PATH=\$PATH:$golangpath: >> ~/.profile
     fi
-    export PATH=$PAHT:$golangpath
+    export PATH=$PATH:$golangpath:
 fi
 #  Prevent mismatch library errors when building newt.
 export GOROOT=
@@ -109,31 +109,7 @@ set +e              #  TODO: Remove this when newt install is fixed
 newt install -v -f  #  TODO: "git checkout" fails due to uncommitted files
 set -e              #  TODO: Remove this when newt install is fixed
 
-#  If you see "Error: Unknown subcommand: get-url"
-#  then upgrade git as shown above.
-
 echo "***** Reparing mynewt..."
-
-#  TODO: newt install fails due to uncommitted files. Need to check out manually.
-
-#  Check out core mynewt_1_6_0_tag.
-if [ -d repos/apache-mynewt-core ]; then
-    pushd repos/apache-mynewt-core
-    git checkout mynewt_1_6_0_tag -f
-    popd
-fi
-#  Check out nimble nimble_1_1_0_tag, which matches mynewt_1_6_0_tag.
-if [ -d repos/apache-mynewt-nimble ]; then
-    pushd repos/apache-mynewt-nimble
-    git checkout nimble_1_1_0_tag -f
-    popd
-fi
-#  Check out mcuboot v1.3.0, which matches mynewt_1_6_0_tag.
-if [ -d repos/mcuboot ]; then
-    pushd repos/mcuboot
-    git checkout v1.3.0 -f
-    popd
-fi
 
 #  If apache-mynewt-core is missing, then the installation failed.
 if [ ! -d repos/apache-mynewt-core ]; then
