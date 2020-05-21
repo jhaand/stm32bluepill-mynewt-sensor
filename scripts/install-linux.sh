@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#  Install Apache Mynewt for Ubuntu Linux.  Based on https://mynewt.apache.org/latest/newt/install/newt_linux.html.  
+#  Install Apache Mynewt for Ubuntu Linux or Debian Linux 11 (Bullseye).  Based on https://mynewt.apache.org/latest/newt/install/newt_linux.html.  
 
 echo "Installing Apache Mynewt for Linux..."
 set -e  #  Exit when any command fails.
@@ -15,15 +15,12 @@ fi
 
 echo "***** Installing git..."
 
-#  Upgrade git to prevent "newt install" error: "Unknown subcommand: get-url".
-sudo add-apt-repository ppa:git-core/ppa -y
-sudo apt update -y
 sudo apt install git -y
 git --version  #  Should show "git version 2.21.0" or later.
 
 echo "***** Installing openocd..."
 
-#  Install OpenOCD into the ./openocd folder.  Use "apt install" because Ubuntu build is not available for OpenOCD for gnu-mcu-eclipse.
+#  Install OpenOCD into the ./openocd folder.  
 if [ ! -e openocd/bin/openocd ]; then
     sudo apt install openocd -y
     if [ ! -d openocd/bin ]; then
@@ -35,7 +32,7 @@ fi
 echo "***** Installing npm..."
 
 #  Install npm.
-if [ ! -e /usr/bin/npm ]; then
+if [ ! -e /usr/local/bin/npm ] || [ ! -e /usr/bin/npm ] ; then
     sudo apt update  -y  #  Update all Ubuntu packages.
     sudo apt upgrade -y  #  Upgrade all Ubuntu packages.
     curl -sL https://deb.nodesource.com/setup_10.x | sudo bash -
@@ -45,28 +42,29 @@ fi
 
 echo "***** Installing Arm Toolchain..."
 
-#  Install Arm Toolchain into $HOME/opt/xPacks/@gnu-mcu-eclipse/arm-none-eabi-gcc/*/.content/. From https://gnu-mcu-eclipse.github.io/toolchain/arm/install/
-if [ ! -d $HOME/opt/xPacks/@gnu-mcu-eclipse/arm-none-eabi-gcc ]; then
+#  Install Arm Toolchain into $HOME/opt/xPacks/@xpack-dev-tools/arm-none-eabi-gcc/*/.content/. From https://xpack.github.io/arm-none-eabi-gcc/install/
+if [ ! -d $HOME/opt/xPacks/@xpack-dev-tools/arm-none-eabi-gcc ]; then
     sudo npm install --global xpm
-    sudo xpm install --global @gnu-mcu-eclipse/arm-none-eabi-gcc
-    gccpath=`ls -d $HOME/opt/xPacks/@gnu-mcu-eclipse/arm-none-eabi-gcc/*/.content/bin`
-    echo export PATH=$gccpath:\$PATH >> ~/.bashrc
-    echo export PATH=$gccpath:\$PATH >> ~/.profile
-    export PATH=$gccpath:$PATH
+    # xpm install --global @gnu-mcu-eclipse/arm-none-eabi-gcc
+    xpm install @xpack-dev-tools/arm-none-eabi-gcc
+    gccpath=`ls -d $HOME/opt/xPacks/@xpack-dev-tools/arm-none-eabi-gcc/*/.content/bin`
+    if [[ ! "$PATH" = *"arm-none-eabi-gcc"* ]] ; then 
+        echo export PATH=$gccpath:\$PATH >> ~/.profile
+        export PATH=$PATH:$gccpath
+    fi
 fi
 arm-none-eabi-gcc --version  #  Should show "gcc version 8.2.1 20181213" or later.
 
 echo "***** Installing go..."
 
-#  Install go 1.10 to prevent newt build error: "go 1.10 or later is required (detected version: 1.2.X)"
-golangpath=/usr/lib/go-1.10/bin
+#  Install go 1.14 to prevent newt build error: "go 1.10 or later is required (detected version: 1.14.x)"
+golangpath=/usr/lib/go-1.14/bin
 if [ ! -e $golangpath/go ]; then
-    sudo apt install golang-1.10 -y
-    echo export PATH=$golangpath:\$PATH >> ~/.bashrc
-    echo export PATH=$golangpath:\$PATH >> ~/.profile
-    echo export GOROOT= >> ~/.bashrc
-    echo export GOROOT= >> ~/.profile
-    export PATH=$golangpath:$PATH
+    sudo apt install golang-1.14 -y
+    if [[ ! "$PATH" = *"go-1"* ]] ; then 
+        echo export PATH=\$PATH:$golangpath: >> ~/.profile
+    fi
+    export PATH=$PAHT:$golangpath
 fi
 #  Prevent mismatch library errors when building newt.
 export GOROOT=
